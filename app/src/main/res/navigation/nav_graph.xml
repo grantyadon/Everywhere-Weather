@@ -2,7 +2,7 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    app:startDestination="@id/mapFragment">
+    app:startDestination="@id/mapsFragment">
 
     <fragment
         android:id="@+id/mapsFragment"
@@ -25,6 +25,23 @@
             android:id="@+id/action_locationFragment_to_mapsFragment"
             app:destination="@id/mapsFragment"
             app:popUpTo="@id/locationFragment"
+            app:popUpToInclusive="true"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/mainmenuFragment"
+        android:name="com.cs407.everywhereweather.MainMenuScreen"
+        android:label="@string/mainmenu_screen"
+        tools:layout="@layout/fragment_mainmenu">
+        <action
+            android:id="@+id/action_mainmenuFragment_to_mapsFragment"
+            app:destination="@id/mapsFragment"
+            app:popUpTo="@id/mainmenuFragment"
+            app:popUpToInclusive="true"/>
+        <action
+            android:id="@+id/action_mainmenuFragment_to_locationFragment"
+            app:destination="@id/locationFragment"
+            app:popUpTo="@id/mainmenuFragment"
             app:popUpToInclusive="true"/>
     </fragment>
 

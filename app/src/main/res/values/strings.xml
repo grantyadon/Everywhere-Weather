@@ -3,6 +3,6 @@
     <string name="map_screen">MapsScreen</string>
     <string name="location_screen">LocationScreen</string>
     <string name="title_activity_map_screen">MapScreen</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="mainmenu_screen">MainMenuScreen</string>
+    <string name="weather_source">This app is drawing weather data from the following sources:</string>
 </resources>
