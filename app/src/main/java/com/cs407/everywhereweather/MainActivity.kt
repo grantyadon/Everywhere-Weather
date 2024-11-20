@@ -1,6 +1,7 @@
+package com.cs407.everywhereweather
+
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.cs407.everywhereweather.R
 
 class MainActivity : AppCompatActivity() {
 

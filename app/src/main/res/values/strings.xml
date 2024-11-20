@@ -3,6 +3,18 @@
     <string name="map_screen">MapsScreen</string>
     <string name="location_screen">LocationScreen</string>
     <string name="title_activity_map_screen">MapScreen</string>
+
+    <string name="today_weather">Today\'s Weather</string>
+
     <string name="mainmenu_screen">MainMenuScreen</string>
-    <string name="weather_source">This app is drawing weather data from the following sources:</string>
+    <string name="condition">Condition: %1$s</string>
+    <string name="temperature">Temperature: %1$s °F</string>
+    <string name="feels_like">Feels like: %1$s °F</string>
+    <string name="precipitation">Precipitation: %1$s%%</string>
+    <string name="wind_speed">Wind Speed: %1$s m/s</string>
+
+    <string name="new_trip">New Trip</string>
+    <string name="past_trips">Past Trips</string>
+    <string name="saved_trips">Saved Trips</string>
+
 </resources>
