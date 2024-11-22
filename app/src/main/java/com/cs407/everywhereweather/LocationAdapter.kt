@@ -3,22 +3,21 @@ package com.cs407.everywhereweather
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
 import androidx.recyclerview.widget.RecyclerView
 
-class LocationAdapter(private val dataSet: Array<String>) : RecyclerView.Adapter<LocationAdapter.ViewHolder>() {
+class LocationAdapter(private val dataSet: Array<String>, private val onButtonClick: (String) -> Unit) : RecyclerView.Adapter<LocationAdapter.ViewHolder>() {
 
     /**
      * Provide a reference to the type of views that you are using
      * (custom ViewHolder)
      */
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val textView: TextView
+        val button: Button = view.findViewById(R.id.itemButton)
 
-        init {
-            // Define click listener for the ViewHolder's View
-            textView = view.findViewById(R.id.textView)
-        }
     }
 
     // Create new views (invoked by the layout manager)
@@ -35,10 +34,13 @@ class LocationAdapter(private val dataSet: Array<String>) : RecyclerView.Adapter
 
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
-        viewHolder.textView.text = dataSet[position]
+        val locationText = dataSet[position]
+        viewHolder.button.text = locationText
+        viewHolder.button.setOnClickListener {
+            onButtonClick(locationText)
+        }
     }
 
     // Return the size of your dataset (invoked by the layout manager)
     override fun getItemCount() = dataSet.size
-
 }
