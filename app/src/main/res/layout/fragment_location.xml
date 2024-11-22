@@ -20,7 +20,7 @@
             android:orientation="horizontal">
 
             <EditText
-                android:id="@+id/editTextText2"
+                android:id="@+id/locationSearchText"
                 android:layout_width="300dp"
                 android:layout_height="50dp"
                 android:ems="10"
@@ -28,7 +28,7 @@
                 android:inputType="text" />
 
             <ImageButton
-                android:id="@+id/imageButton3"
+                android:id="@+id/locationSearchButton"
                 android:layout_width="0dp"
                 android:layout_height="60dp"
                 android:layout_weight="1"
