@@ -16,5 +16,6 @@
     <string name="new_trip">New Trip</string>
     <string name="past_trips">Past Trips</string>
     <string name="saved_trips">Saved Trips</string>
+    <string name="element_text" />
 
 </resources>

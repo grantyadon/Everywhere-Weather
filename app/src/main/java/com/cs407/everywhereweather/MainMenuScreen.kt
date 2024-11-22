@@ -78,11 +78,11 @@ class MainMenuScreen : Fragment() {
         }
 
         savedTripsButton.setOnClickListener {
-            openNextFragment(MapsScreen()) // TODO change to respective fragment
+            openNextFragment(LocationScreen()) // TODO change to respective fragment
         }
 
         pastTripsButton.setOnClickListener {
-            openNextFragment(MapsScreen()) // TODO change to respective fragment
+            openNextFragment(LocationScreen()) // TODO change to respective fragment
         }
 
         // Request location permission when the fragment is created
