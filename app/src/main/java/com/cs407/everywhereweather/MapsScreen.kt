@@ -24,6 +24,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
@@ -45,7 +46,7 @@ class MapsScreen : Fragment() {
     private var currentLocation: LatLng? = null
     private lateinit var placesClient: PlacesClient
     private var routeWeather: List<RouteWeatherDTO>? = null
-    private val apiKey = "GOOGLE API KEY"
+    private val apiKey = "AIzaSyCP7ntxjJu-dTBSUq7VcjFunulE5Z_Pi4k"
 
     private val callback = OnMapReadyCallback { map ->
         googleMap = map
@@ -273,98 +274,144 @@ class MapsScreen : Fragment() {
     ) {
         val backendAPI = RetrofitClient.getClient().create(WeatherOnSpotAPI::class.java)
         val routesWeather = mutableListOf<RouteWeatherDTO>()
-        var pendingRequests = 0 // Track pending network requests
 
         request.routes.forEach { route ->
             val routeWeather = mutableMapOf<Cords, MinutelyWeatherDTO>()
             var totalDuration = 0
 
-            route.legs.forEach { leg ->
-                // Fetch weather for the starting location of the leg
+            route.legs.forEachIndexed { index, leg ->
                 val startCords = Cords(leg.startLocation.latitude, leg.startLocation.longitude)
                 val startWeatherRequest = GetSpotWeatherRequest(startCords, timeOffset)
 
-                pendingRequests++
-                backendAPI.getSpotWeather(startWeatherRequest)
-                    .enqueue(object : retrofit2.Callback<WeatherResponse> {
+                backendAPI.getSpotWeather(startWeatherRequest).enqueue(object : retrofit2.Callback<WeatherResponse> {
+                    override fun onResponse(
+                        call: Call<WeatherResponse>,
+                        response: Response<WeatherResponse>
+                    ) {
+                        response.body()?.let { weather ->
+                            val precipitationChance = when (weather) {
+                                is CurrentWeatherResponse -> weather.precipitationChance
+                                is HourlyWeatherResponse -> weather.precipitationChance
+                                is DailyWeatherResponse -> weather.precipitationChance
+                                else -> 0.0
+                            }
+                            val temperatureInCelsius = when (weather) {
+                                is CurrentWeatherResponse -> weather.temp - 273.15
+                                is HourlyWeatherResponse -> weather.temp - 273.15
+                                is DailyWeatherResponse -> weather.tempDay - 273.15
+                                else -> 0.0
+                            }
+
+                            // Add marker for the leg start
+                            if (precipitationChance > 0.0) {
+                                googleMap?.addMarker(
+                                    MarkerOptions()
+                                        .position(LatLng(startCords.latitude, startCords.longitude))
+                                        .title("Precipitation: ${precipitationChance * 100}%, Temp: ${"%.1f".format(temperatureInCelsius)}°C")
+                                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                                )
+                            }
+                        }
+                    }
+
+                    override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
+                        Log.e("WeatherAPI", "Failed to fetch weather for start location: $startCords", t)
+                    }
+                })
+
+                leg.steps.forEach { step ->
+                    totalDuration += parseDuration(step.staticDuration)
+
+                    val endCords = Cords(step.endLocation.latitude, step.endLocation.longitude)
+                    val stepWeatherRequest = GetSpotWeatherRequest(endCords, timeOffset + totalDuration)
+
+                    backendAPI.getSpotWeather(stepWeatherRequest).enqueue(object : retrofit2.Callback<WeatherResponse> {
                         override fun onResponse(
                             call: Call<WeatherResponse>,
                             response: Response<WeatherResponse>
                         ) {
                             response.body()?.let { weather ->
-                                if (weather is CurrentWeatherResponse) {
-                                    routeWeather[startCords] = MinutelyWeatherDTO(
-                                        weather.temp.toFloat(),
-                                        weather.rain.toFloat() + weather.snow.toFloat()
+                                val precipitationChance = when (weather) {
+                                    is CurrentWeatherResponse -> weather.precipitationChance
+                                    is HourlyWeatherResponse -> weather.precipitationChance
+                                    is DailyWeatherResponse -> weather.precipitationChance
+                                    else -> 0.0
+                                }
+                                val temperatureInCelsius = when (weather) {
+                                    is CurrentWeatherResponse -> weather.temp - 273.15
+                                    is HourlyWeatherResponse -> weather.temp - 273.15
+                                    is DailyWeatherResponse -> weather.tempDay - 273.15
+                                    else -> 0.0
+                                }
+
+                                googleMap?.addPolyline(
+                                    PolylineOptions()
+                                        .add(
+                                            LatLng(step.startLocation.latitude, step.startLocation.longitude),
+                                            LatLng(step.endLocation.latitude, step.endLocation.longitude)
+                                        )
+                                        .width(10f)
+                                        .color(ContextCompat.getColor(requireContext(), R.color.black))
+                                )
+
+                                if (precipitationChance > 0.0) {
+                                    googleMap?.addMarker(
+                                        MarkerOptions()
+                                            .position(LatLng(endCords.latitude, endCords.longitude))
+                                            .title("Precipitation: ${precipitationChance * 100}%, Temp: ${"%.1f".format(temperatureInCelsius)}°C")
+                                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                                     )
                                 }
                             }
-                            checkCompletion(--pendingRequests, routesWeather, onComplete)
                         }
 
                         override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
-                            Log.e(
-                                "WeatherAPI",
-                                "Failed to fetch weather for start location: $startCords",
-                                t
-                            )
-                            checkCompletion(--pendingRequests, routesWeather, onComplete)
+                            Log.e("WeatherAPI", "Failed to fetch weather for step location: $endCords", t)
                         }
                     })
+                }
 
-                // Fetch weather for each step
-                leg.steps.forEach { step ->
-                    totalDuration += parseDuration(step.staticDuration)
+                // Add marker for the destination (end location of the last leg)
+                if (index == route.legs.size - 1) {
+                    val destinationCords = Cords(leg.endLocation.latitude, leg.endLocation.longitude)
+                    val destinationWeatherRequest = GetSpotWeatherRequest(destinationCords, timeOffset + totalDuration)
 
-                    val endCords = Cords(step.endLocation.latitude, step.endLocation.longitude)
-                    val stepWeatherRequest =
-                        GetSpotWeatherRequest(endCords, timeOffset + totalDuration)
-
-                    pendingRequests++
-                    backendAPI.getSpotWeather(stepWeatherRequest)
-                        .enqueue(object : retrofit2.Callback<WeatherResponse> {
-                            override fun onResponse(
-                                call: Call<WeatherResponse>,
-                                response: Response<WeatherResponse>
-                            ) {
-                                response.body()?.let { weather ->
-                                    if (weather is CurrentWeatherResponse) {
-                                        routeWeather[endCords] = MinutelyWeatherDTO(
-                                            weather.temp.toFloat(),
-                                            weather.rain.toFloat() + weather.snow.toFloat()
-                                        )
-                                    }
+                    backendAPI.getSpotWeather(destinationWeatherRequest).enqueue(object : retrofit2.Callback<WeatherResponse> {
+                        override fun onResponse(
+                            call: Call<WeatherResponse>,
+                            response: Response<WeatherResponse>
+                        ) {
+                            response.body()?.let { weather ->
+                                val temperatureInCelsius = when (weather) {
+                                    is CurrentWeatherResponse -> weather.temp - 273.15
+                                    is HourlyWeatherResponse -> weather.temp - 273.15
+                                    is DailyWeatherResponse -> weather.tempDay - 273.15
+                                    else -> 0.0
                                 }
-                                checkCompletion(--pendingRequests, routesWeather, onComplete)
-                            }
-
-                            override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
-                                Log.e(
-                                    "WeatherAPI",
-                                    "Failed to fetch weather for step location: $endCords",
-                                    t
+                                googleMap?.addMarker(
+                                    MarkerOptions()
+                                        .position(LatLng(leg.endLocation.latitude, leg.endLocation.longitude))
+                                        .title("Destination, Temp: ${"%.1f".format(temperatureInCelsius)}°C")
+                                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                                 )
-                                checkCompletion(--pendingRequests, routesWeather, onComplete)
                             }
-                        })
+                        }
+
+                        override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
+                            Log.e("WeatherAPI", "Failed to fetch weather for destination: $destinationCords", t)
+                        }
+                    })
                 }
             }
 
-            // Add the weather data for the current route
             routesWeather.add(RouteWeatherDTO(listOf(route.summary), routeWeather))
         }
+
+        onComplete(routesWeather)
     }
 
-    private fun checkCompletion(
-        pendingRequests: Int,
-        routesWeather: List<RouteWeatherDTO>,
-        onComplete: (List<RouteWeatherDTO>) -> Unit
-    ) {
-        if (pendingRequests == 0) {
-            // All requests completed
-            onComplete(routesWeather)
-        }
-    }
+
+
 
     private fun parseDuration(duration: String?): Int {
         if (duration.isNullOrEmpty()) {
