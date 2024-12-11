@@ -151,7 +151,7 @@ class MainMenuScreen : Fragment() {
             val response = service.fetchWeather(
                 location.latitude,
                 location.longitude,
-                "YOUR_API_KEY_HERE"
+                "YOUR WEATHER API KEY HERE"
             )
 
             if (response != null) {
@@ -166,7 +166,7 @@ class MainMenuScreen : Fragment() {
     }
 
     private fun kelvinToFahrenheit(kelvin: Double): String {
-        return ((kelvin - 273.15) * 9 / 5 + 32).let {
+        return  (-1 *((kelvin - 273.15) * 9 / 5 + 32)).let {
             String.format(Locale.US, "%.2f", it)
         }
     }
