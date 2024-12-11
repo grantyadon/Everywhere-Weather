@@ -15,8 +15,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
+import com.cs407.everywhereweather.api.Cords
+import com.cs407.everywhereweather.api.CurrentWeatherResponse
+import com.cs407.everywhereweather.api.GetSpotWeatherRequest
 import com.cs407.everywhereweather.api.WeatherOnSpotDTO
 import com.cs407.everywhereweather.api.WeatherOnSpotService
+import com.cs407.everywhereweather.api.WeatherResponse
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -39,7 +43,7 @@ class MainMenuScreen : Fragment() {
     private lateinit var precipitationTextView: TextView
     private lateinit var windSpeedTextView: TextView
 
-    private var weatherData: WeatherOnSpotDTO? = null
+    private var weatherData: WeatherResponse? = null
     private var cancellationTokenSource: CancellationTokenSource? = null
 
     @SuppressLint("MissingPermission")
@@ -148,18 +152,18 @@ class MainMenuScreen : Fragment() {
 
         CoroutineScope(Dispatchers.IO).launch {
             val service = WeatherOnSpotService()
-            val response = service.fetchWeather(
-                location.latitude,
-                location.longitude,
-                "YOUR WEATHER API KEY HERE"
+            val request = GetSpotWeatherRequest(
+                cords = Cords(location.latitude, location.longitude),
+                timeOffset = 0
             )
+            val response = service.fetchWeather(request)
 
-            if (response != null) {
-                weatherData = response
-                updateWeatherUI(response)
-            } else {
-                CoroutineScope(Dispatchers.Main).launch {
-                    Toast.makeText(context, "Failed to fetch weather data", Toast.LENGTH_SHORT).show()
+            when (response) {
+                is CurrentWeatherResponse -> {
+                    updateWeatherUI(response)
+                }
+                else -> {
+                    println("Failed to fetch weather data")
                 }
             }
         }
@@ -171,24 +175,33 @@ class MainMenuScreen : Fragment() {
         }
     }
 
-    private fun updateWeatherUI(weather: WeatherOnSpotDTO) {
+    private fun updateWeatherUI(weather: WeatherResponse) {
         CoroutineScope(Dispatchers.Main).launch {
-            val condition = weather.weather?.firstOrNull()?.description ?: "Unknown"
-            val kelvinTemperature = weather.main?.temp ?: 0.0
-            val kelvinFeelsLike = weather.main?.feelsLike ?: 0.0
-            val precipitation = weather.rain?.oneHour?.toInt()?.toString() ?: "0"
-            val windSpeed = weather.wind?.speed?.toInt()?.toString() ?: "0"
+            // Extract data from the WeatherResponse
+            if (weather is CurrentWeatherResponse) { // Ensure type safety
+                val condition = weather.weatherDescription
+                val kelvinTemperature = weather.temp
+                val kelvinFeelsLike = weather.feelsLike
+                val precipitation = weather.precipitationChance.toInt().toString()
+                val windSpeed = weather.windSpeed.toInt().toString()
 
-            val temperature: String = kelvinToFahrenheit(kelvinTemperature)
-            val feelsLike: String = kelvinToFahrenheit(kelvinFeelsLike)
+                // Convert temperatures from Kelvin to Fahrenheit
+                val temperature: String = kelvinToFahrenheit(kelvinTemperature)
+                val feelsLike: String = kelvinToFahrenheit(kelvinFeelsLike)
 
-            conditionTextView.text = condition
-            temperatureTextView.text = getString(R.string.temperature, temperature)
-            feelsLikeTextView.text = getString(R.string.feels_like, feelsLike)
-            precipitationTextView.text = getString(R.string.precipitation, precipitation)
-            windSpeedTextView.text = getString(R.string.wind_speed, windSpeed)
+                // Update UI elements with the extracted data
+                conditionTextView.text = condition
+                temperatureTextView.text = getString(R.string.temperature, temperature)
+                feelsLikeTextView.text = getString(R.string.feels_like, feelsLike)
+                precipitationTextView.text = getString(R.string.precipitation, precipitation)
+                windSpeedTextView.text = getString(R.string.wind_speed, windSpeed)
+            } else {
+                println("Invalid weather type provided")
+            }
         }
     }
+
+
 
     private fun openNextFragment(fragment: Fragment) {
         parentFragmentManager.commit {
