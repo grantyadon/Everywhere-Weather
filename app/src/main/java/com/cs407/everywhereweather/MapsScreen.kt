@@ -1,5 +1,6 @@
 package com.cs407.everywhereweather
 
+
 import GoogleDirectionsAPI
 import android.Manifest
 import android.annotation.SuppressLint
@@ -10,6 +11,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.ImageButton
@@ -53,13 +55,28 @@ class MapsScreen : Fragment() {
         enableMyLocation()
         setUpCurrentLocationMarker()
     }
+    private lateinit var mFusedLocationProviderClient: FusedLocationProviderClient
+    private lateinit var mMap: GoogleMap
+    private lateinit var mDestinationLatLng: LatLng
+    private val activityContext = requireActivity().applicationContext
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_maps, container, false)
+        val binding = FragmentMapsBinding.inflate(inflater, container, false)
+
+        val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
+        mapFragment?.getMapAsync { googleMap: GoogleMap ->
+            mMap = googleMap
+            mDestinationLatLng = LatLng(43.0753, -89.4034)
+            setLocationMarker(mDestinationLatLng, "Bascom Hall")
+            checkLocationPermissionAndDrawPolyline(mDestinationLatLng)
+        }
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(activityContext)
+
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -264,6 +281,7 @@ class MapsScreen : Fragment() {
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1001
+
     }
 
 

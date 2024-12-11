@@ -82,11 +82,13 @@ class MainMenuScreen : Fragment() {
         }
 
         savedTripsButton.setOnClickListener {
-            openNextFragment(MapsScreen()) // TODO change to respective fragment
+            // TODO: Load saved trips for the dataset on location screen
+            openNextFragment(LocationScreen())
         }
 
         pastTripsButton.setOnClickListener {
-            openNextFragment(MapsScreen()) // TODO change to respective fragment
+            // TODO: Load past trips for the dataset on location screen
+            openNextFragment(LocationScreen())
         }
 
         // Request location permission when the fragment is created

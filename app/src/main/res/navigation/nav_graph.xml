@@ -2,7 +2,8 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    app:startDestination="@id/mapsFragment">
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/mainmenuFragment">
 
     <fragment
         android:id="@+id/mapsFragment"
@@ -14,6 +15,9 @@
             app:destination="@id/locationFragment"
             app:popUpTo="@id/mapsFragment"
             app:popUpToInclusive="true"/>
+        <argument
+            android:name="location"
+            app:argType="string" />
     </fragment>
 
     <fragment
@@ -26,6 +30,7 @@
             app:destination="@id/mapsFragment"
             app:popUpTo="@id/locationFragment"
             app:popUpToInclusive="true"/>
+
     </fragment>
 
     <fragment

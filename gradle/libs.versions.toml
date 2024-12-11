@@ -18,7 +18,9 @@ playServicesMaps = "19.0.0"
 navigationFragmentKtx = "2.8.3"
 navigationUiKtx = "2.8.3"
 playServicesLocation = "21.3.0"
+secretsGradlePlugin = "2.0.1"
 retrofit = "2.10.0"
+
 
 [libraries]
 android-maps-utils = { module = "com.google.maps.android:android-maps-utils", version.ref = "androidMapsUtils" }
@@ -39,6 +41,8 @@ play-services-maps = { group = "com.google.android.gms", name = "play-services-m
 androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
 androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationUiKtx" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+secrets-gradle-plugin = { module = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin", version.ref = "secretsGradlePlugin" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
