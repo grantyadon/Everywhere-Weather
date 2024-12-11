@@ -46,7 +46,7 @@ class MapsScreen : Fragment() {
     private var currentLocation: LatLng? = null
     private lateinit var placesClient: PlacesClient
     private var routeWeather: List<RouteWeatherDTO>? = null
-    private val apiKey = "AIzaSyCP7ntxjJu-dTBSUq7VcjFunulE5Z_Pi4k"
+    private val apiKey = "API KEY"
 
     private val callback = OnMapReadyCallback { map ->
         googleMap = map
